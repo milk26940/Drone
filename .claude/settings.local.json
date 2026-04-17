@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf \"C:/Users/26940/.claude/plugins/cache/claude-hud\")",
+      "Bash(rm -rf \"C:/Users/26940/.claude/plugins/marketplaces/claude-hud\")"
+    ]
+  }
+}

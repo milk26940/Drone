@@ -1,0 +1,44 @@
+# Build outputs
+Debug/
+Release/
+build/
+out/
+
+# Keil / MDK
+Objects/
+Listings/
+*.axf
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+*.o
+*.obj
+*.crf
+*.d
+*.dep
+*.htm
+*.uvguix.*
+*.uvgui.*
+*.uvoptx
+*.uvprojx.bak
+
+# STM32CubeMX / IDE generated
+*.ioc
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/c_cpp_properties.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# FreeRTOS / misc temp files
+*.log
+*.tmp
+*.swp
+
+# System files
+Thumbs.db
+.DS_Store
