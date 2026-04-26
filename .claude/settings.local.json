@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(rm -rf \"C:/Users/26940/.claude/plugins/cache/claude-hud\")",
-      "Bash(rm -rf \"C:/Users/26940/.claude/plugins/marketplaces/claude-hud\")"
+      "Bash(rm -rf \"C:/Users/26940/.claude/plugins/marketplaces/claude-hud\")",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\26940\\\\Desktop\\\\一些小巧思\\\\一些工具技能\\\\vscode错误消除\\\\Init-CppPropertiesFromKeil.ps1\" -ProjectRoot \"D:\\\\STM32Project\\\\PID\\\\My_CODE\\\\Drone\" -UvprojxPath \"D:\\\\STM32Project\\\\PID\\\\My_CODE\\\\Drone\\\\MDK-ARM\\\\drone.uvprojx\" -Apply)"
     ]
   }
 }

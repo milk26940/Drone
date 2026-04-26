@@ -24,8 +24,7 @@ Listings/
 *.uvoptx
 *.uvprojx.bak
 
-# STM32CubeMX / IDE generated
-*.ioc
+
 
 # VS Code
 .vscode/
