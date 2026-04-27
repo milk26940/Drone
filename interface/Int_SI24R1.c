@@ -205,6 +205,7 @@ u8 SI24R1_RxPacket(u8 *rxbuf)
 {
     u8 state;
 
+    /* 先读取并回写 STATUS，清除本次处理中断标志 */
     state = SI24R1_Read_Reg(STATUS);
     SI24R1_Write_Reg(SI24R1_WRITE_REG_CMD + STATUS, state);
 
@@ -253,6 +254,7 @@ u8 SI24R1_TxPacket(u8 *txbuf)
     }
 
     state = SI24R1_Read_Reg(STATUS);
+    /* 回写 STATUS 清除发送完成或重发失败标志 */
     SI24R1_Write_Reg(SI24R1_WRITE_REG_CMD + STATUS, state);
 
     if (state & MAX_RT)  /* MAX_RT: 最大重发次数标志 */

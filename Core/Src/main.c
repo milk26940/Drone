@@ -23,6 +23,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "adc.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -99,6 +100,8 @@ int main(void)
   MX_TIM4_Init();
   MX_SPI1_Init();
   MX_I2C1_Init();
+  MX_I2C2_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
   // 实现最初的日志打印输出

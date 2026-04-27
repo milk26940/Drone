@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xB</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../common;../FreeRTOS/include;../FreeRTOS/portable/RVDS/ARM_CM3;../interface</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../common;../FreeRTOS/include;../FreeRTOS/portable/RVDS/ARM_CM3;../interface;../interface/fix_height;../Application</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -414,6 +414,11 @@
               <FileName>gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/adc.c</FilePath>
             </File>
             <File>
               <FileName>i2c.c</FileName>
@@ -714,6 +719,16 @@
               <FileName>stm32f1xx_hal.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f1xx_hal_adc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_adc_ex.c</FilePath>
             </File>
             <File>
               <FileName>stm32f1xx_hal_rcc.c</FileName>
@@ -1104,6 +1119,61 @@
               <FileName>Int_mpu6050.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\interface\Int_mpu6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>Int_bat_ADC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\interface\Int_bat_ADC.c</FilePath>
+            </File>
+            <File>
+              <FileName>Int_bat_ADC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\interface\Int_bat_ADC.h</FilePath>
+            </File>
+            <File>
+              <FileName>Int_VL53L1X.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\interface\fix_height\Int_VL53L1X.c</FilePath>
+            </File>
+            <File>
+              <FileName>Int_VL53L1X.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\interface\fix_height\Int_VL53L1X.h</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_platform.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\interface\fix_height\vl53l1_platform.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_platform.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\interface\fix_height\vl53l1_platform.h</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_types.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\interface\fix_height\vl53l1_types.h</FilePath>
+            </File>
+            <File>
+              <FileName>VL53L1X_api.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\interface\fix_height\VL53L1X_api.c</FilePath>
+            </File>
+            <File>
+              <FileName>VL53L1X_api.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\interface\fix_height\VL53L1X_api.h</FilePath>
+            </File>
+            <File>
+              <FileName>VL53L1X_calibration.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\interface\fix_height\VL53L1X_calibration.c</FilePath>
+            </File>
+            <File>
+              <FileName>VL53L1X_calibration.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\interface\fix_height\VL53L1X_calibration.h</FilePath>
             </File>
           </Files>
         </Group>

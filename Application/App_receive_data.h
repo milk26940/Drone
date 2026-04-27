@@ -3,6 +3,7 @@
 
 #include "Com_config.h"
 #include "Int_SI24R1.h"
+#include "Int_VL53L1X.h"
 
 // 接收数据帧头校验值
 #define FRAME_HEAD_CHECK_1 's'
@@ -14,8 +15,10 @@
 
 // Function prototypes
 uint8_t App_ReceiveData(void);
+uint8_t App_receive_data(void);
 
 
 void App_process_connect_state(uint8_t res);
+void App_process_flight_state(void);
 
 #endif // APP_RECEIVE_DATA_H

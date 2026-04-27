@@ -18,6 +18,16 @@ typedef enum
     FAIL
 } Flight_State;
 
+/** 油门解锁状态 */
+typedef enum
+{
+    FREE = 0,
+    MAX,
+    LEAVE_MAX,
+    MIN,
+    UNLOCK
+} Thr_state;
+
 /** 遥控器数据 */
 typedef struct
 {

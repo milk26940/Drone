@@ -6,9 +6,11 @@
 
 typedef uint8_t u8;
 
+/* SI24R1 地址宽度与单包载荷长度定义 */
 #define TX_ADR_WIDTH   5
 #define TX_PLOAD_WIDTH 32
 
+/* SI24R1 模块引脚定义 */
 #define SI24R1_GPIO_MOSI_Port GPIOA
 #define SI24R1_GPIO_MOSI_Pin   GPIO_PIN_7
 #define SI24R1_GPIO_MISO_Port GPIOA
@@ -22,6 +24,7 @@ typedef uint8_t u8;
 #define SI24R1_GPIO_IRQ_Port  GPIOA
 #define SI24R1_GPIO_IRQ_Pin   GPIO_PIN_9
 
+/* SPI 指令码定义 */
 #define SI24R1_READ_REG_CMD  0x00
 #define SI24R1_WRITE_REG_CMD 0x20
 #define RD_RX_PLOAD     0x61
@@ -31,6 +34,7 @@ typedef uint8_t u8;
 #define REUSE_TX_PL     0xE3
 #define NOP             0xFF
 
+/* SI24R1 常用寄存器地址 */
 #define CONFIG          0x00
 #define EN_AA           0x01
 #define EN_RXADDR       0x02
@@ -56,10 +60,12 @@ typedef uint8_t u8;
 #define RX_PW_P5        0x16
 #define FIFO_STATUS     0x17
 
+/* STATUS 寄存器中的关键状态位 */
 #define RX_DR           0x40
 #define TX_DS           0x20
 #define MAX_RT          0x10
 
+/* 引脚控制宏，简化模块时序操作 */
 #define SI24R1_MOSI_HIGH() HAL_GPIO_WritePin(SI24R1_GPIO_MOSI_Port, SI24R1_GPIO_MOSI_Pin, GPIO_PIN_SET)
 #define SI24R1_MOSI_LOW()  HAL_GPIO_WritePin(SI24R1_GPIO_MOSI_Port, SI24R1_GPIO_MOSI_Pin, GPIO_PIN_RESET)
 #define SI24R1_MISO_READ() HAL_GPIO_ReadPin(SI24R1_GPIO_MISO_Port, SI24R1_GPIO_MISO_Pin)
