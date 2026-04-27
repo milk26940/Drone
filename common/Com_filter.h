@@ -14,9 +14,13 @@ typedef struct
     float R;     // 测量噪声的方差，反映测量过程的不确定性
 } KalmanFilter_Struct;
 
+/* 三轴卡尔曼滤波器实例数组，通常分别对应 X/Y/Z 三个通道。 */
 extern KalmanFilter_Struct kfs[3];
+
+/* 一阶低通滤波，适合快速抑制传感器高频抖动。 */
 int16_t Common_Filter_LowPass(int16_t newValue, int16_t preFilteredValue);
 
+/* 单次卡尔曼滤波更新，返回当前估计值。 */
 double Common_Filter_KalmanFilter(KalmanFilter_Struct *kf, double input);
 
 #endif

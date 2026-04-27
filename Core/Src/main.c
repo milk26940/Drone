@@ -103,10 +103,10 @@ int main(void)
   MX_I2C2_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
-  // 实现最初的日志打印输出
+  /* 输出启动日志，确认串口重定向与主程序启动正常。 */
   debug_printf("Hello World!\n");
 
+  /* 初始化并进入 FreeRTOS 调度，后续业务逻辑由各任务接管。 */
   freertos_start();
 
   /* USER CODE END 2 */

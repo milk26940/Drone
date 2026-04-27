@@ -23,13 +23,18 @@ typedef struct
     float roll;
 } Euler_struct;
 
+/* 弧度转角度系数。 */
 extern float RtA;
+/* 原始陀螺仪数据转换为角速度后的比例系数，单位为度每秒。 */
 extern float Gyro_G;
+/* 原始陀螺仪数据转换为角速度后的比例系数，单位为弧度每秒。 */
 extern float Gyro_Gr;
 
+/* 根据六轴原始数据解算欧拉角姿态。 */
 void Common_IMU_GetEulerAngle(Gyro_Accel_Struct *gyroAccel,
                               Euler_struct *eulerAngle,
                               float dt);
+/* 获取归一化后的 Z 轴加速度分量。 */
 float Common_IMU_GetNormAccZ(void);
 
 #endif

@@ -3,19 +3,31 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+/* 当前解析后的遥控器输入数据。 */
 Remote_Data remote_data = {.thr = 0, .yaw = 500, .pit = 500, .rol = 500, .fix_height = 0, .shutdown = 0};
+/* 遥控链路连接状态。 */
 Remote_State remote_state = REMOTE_DISCONNECTED;
+/* 无线模块接收缓冲区。 */
 uint8_t rx_buff[TX_PLOAD_WIDTH] = {0};
+/* 连续接收失败计数，用于判定掉线。 */
 uint8_t retry_count = 0;
+/* 油门解锁状态机当前状态。 */
 Thr_state thr_state = FREE;
+/* 油门首次进入高位时的时间戳。 */
 uint32_t max_enter_time = 0;
+/* 油门首次进入低位时的时间戳。 */
 uint32_t min_enter_time = 0;
 
 extern volatile Flight_State flight_state;
 extern uint16_t fix_height;
 extern uint8_t back_buff[TX_PLOAD_WIDTH];
 
-//接收数据并解析为结构体
+/**
+ * @brief 接收并解析一帧遥控器数据
+ * @retval 0 接收并校验成功
+ * @retval 1 接收失败或校验失败
+ * @note 成功接收后会立刻回传一帧遥测数据，再切回接收模式
+ */
 uint8_t App_ReceiveData(void)
 {
     memset(rx_buff, 0, TX_PLOAD_WIDTH);
@@ -69,11 +81,21 @@ uint8_t App_ReceiveData(void)
     return 0;
 }
 
+/**
+ * @brief App_ReceiveData 的兼容封装
+ * @retval 0 接收成功
+ * @retval 1 接收失败
+ */
 uint8_t App_receive_data(void)
 {
     return App_ReceiveData();
 }
 
+/**
+ * @brief 根据本次接收结果更新遥控连接状态
+ * @param res 本次接收结果，0 表示成功，非 0 表示失败
+ * @note 连续失败达到阈值后才判定为掉线，避免偶发丢包导致误判
+ */
 void App_process_connect_state(uint8_t res)
 {
     if (res == 0)
@@ -92,6 +114,12 @@ void App_process_connect_state(uint8_t res)
     }
 }
 
+/**
+ * @brief 油门解锁状态机
+ * @retval 0 已完成解锁
+ * @retval 1 尚未解锁
+ * @note 解锁手势为油门持续高位后切到低位，并分别保持一定时间
+ */
 static uint8_t App_process_unlock(void)
 {
     switch (thr_state)
@@ -148,6 +176,10 @@ static uint8_t App_process_unlock(void)
     return (thr_state == UNLOCK) ? 0U : 1U;
 }
 
+/**
+ * @brief 根据遥控状态和飞行条件更新飞行状态机
+ * @note 负责处理待机、普通飞行、定高和失控保护之间的切换
+ */
 void App_process_flight_state(void)
 {
     switch (flight_state)

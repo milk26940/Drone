@@ -18,26 +18,42 @@
 
 #include <stdio.h>
 
+/* 电源保活任务栈深度。 */
 #define POWER_TASK_STACK_SIZE 128
+/* 电源保活任务优先级。 */
 #define POWER_TASK_PRIORITY 4
+/* 电源保活任务周期，定期模拟按键维持供电。 */
 #define POWER_TASK_PERIOD_MS 10000U
 
+/* 飞控姿态解算与电机控制任务栈深度。 */
 #define FLIGHT_TASK_STACK_SIZE 128
+/* 飞控任务优先级。 */
 #define FLIGHT_TASK_PRIORITY 3
+/* 飞控控制周期。 */
 #define FLIGHT_TASK_PERIOD_MS 6U
 
+/* 状态指示灯任务栈深度。 */
 #define LED_TASK_STACK_SIZE 128
+/* 状态指示灯任务优先级。 */
 #define LED_TASK_PRIORITY 1
+/* LED 状态刷新周期。 */
 #define LED_TASK_PERIOD_MS 100U
 
+/* 通信任务栈深度。 */
 #define COM_TASK_STACK_SIZE 128
+/* 通信任务优先级。 */
 #define COM_TASK_PRIORITY 4
+/* 遥控接收与遥测回传任务周期。 */
 #define COM_TASK_PERIOD_MS 10U
 
+/* 供外部读取的遥控连接标志。 */
 volatile uint8_t rc_connected = 0U;
+/* 飞行主状态机当前状态。 */
 volatile Flight_State flight_state = IDLE;
+/* 无线回传缓冲区，当前用于发送电池电压。 */
 uint8_t back_buff[TX_PLOAD_WIDTH] = {0};
 
+/* 各任务句柄，用于任务间通知或调试。 */
 static TaskHandle_t power_task_handle;
 static TaskHandle_t flight_task_handle;
 static TaskHandle_t led_task_handle;
@@ -50,6 +66,9 @@ static void Power_Task(void *pvParameters);
 static void Flight_Task(void *pvParameters);
 static void Com_Task(void *pvParameters);
 
+/**
+ * @brief 创建系统任务并启动 FreeRTOS 调度器
+ */
 void freertos_start(void)
 {
     SI24R1_Init();
@@ -63,6 +82,10 @@ void freertos_start(void)
     vTaskStartScheduler();
 }
 
+/**
+ * @brief 电源管理任务
+ * @note 正常情况下周期性给 IP5305T 发送保活脉冲；收到通知后执行关机动作
+ */
 static void Power_Task(void *pvParameters)
 {
     (void)pvParameters;
@@ -80,6 +103,10 @@ static void Power_Task(void *pvParameters)
     }
 }
 
+/**
+ * @brief 飞控主任务
+ * @note 负责姿态解算、姿态 PID、定高 PID 和电机输出控制
+ */
 static void Flight_Task(void *pvParameters)
 {
     TickType_t last_wake_time = xTaskGetTickCount();
@@ -112,6 +139,10 @@ static void Flight_Task(void *pvParameters)
     }
 }
 
+/**
+ * @brief 状态指示灯任务
+ * @note 通过不同闪烁模式反映遥控连接状态和飞行模式
+ */
 void LED_Task(void *pvParameters)
 {
     TickType_t last_wake_time = xTaskGetTickCount();
@@ -161,12 +192,20 @@ void LED_Task(void *pvParameters)
     }
 }
 
+/**
+ * @brief 设置遥控连接状态
+ * @param connected 1 表示已连接，0 表示未连接
+ */
 void set_rc_connected(uint8_t connected)
 {
     rc_connected = connected ? 1U : 0U;
     remote_state = connected ? REMOTE_CONNECTED : REMOTE_DISCONNECTED;
 }
 
+/**
+ * @brief 通信任务
+ * @note 负责遥控数据接收、掉线判定、飞行状态更新与电池电压回传
+ */
 static void Com_Task(void *pvParameters)
 {
     TickType_t last_wake_time = xTaskGetTickCount();

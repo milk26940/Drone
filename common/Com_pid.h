@@ -2,10 +2,10 @@
 #define __COM_PID__
 
 #include "main.h"
+/* PID 计算周期，需与飞控控制周期保持一致。 */
 #define PID_PERIOD 0.006
 
-// PID结构体   如果CPU性能够强  推荐使用double
-// kp,ki,kd需要在初始化时确定   目标值和测量值  需要在计算时传递
+/* PID 控制器运行时参数与状态。 */
 typedef struct
 {
     float kp;       // 比例部分  值越大响应速度越快
@@ -19,10 +19,10 @@ typedef struct
     float output;   // 输出结果
 } PID_Struct;
 
-// 单次PID计算
+/* 执行一次位置式 PID 计算。 */
 void Com_PID_Calc(PID_Struct *pid);
 
-// 串级PID计算
+/* 依次执行外环和内环的串级 PID 计算。 */
 void Com_PID_Calc_Chain(PID_Struct *out_pid, PID_Struct *in_pid);
 
 /**

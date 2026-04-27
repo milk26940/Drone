@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "freertos.h"
 #include "task.h"
+/* FreeRTOS 端口层提供的 SysTick 处理函数。 */
 extern void xPortSysTickHandler(void);
 /* USER CODE END Includes */
 
@@ -160,6 +161,7 @@ void DebugMon_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
+  /* 调度器启动后，将 SysTick 节拍同步交给 FreeRTOS 维护任务时基。 */
   if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
   {
     xPortSysTickHandler();
@@ -167,7 +169,7 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+  /* 继续维护 HAL 自身的毫秒时基。 */
   /* USER CODE END SysTick_IRQn 1 */
 }
 

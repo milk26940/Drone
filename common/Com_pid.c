@@ -1,6 +1,9 @@
 #include "Com_pid.h"
 
-// 单次PID计算
+/**
+ * @brief 执行一次位置式 PID 计算
+ * @param pid PID 结构体指针，输入输出均通过该结构体传递
+ */
 void Com_PID_Calc(PID_Struct *pid)
 {
     // 1. 目标和测量 => 计算误差值
@@ -24,7 +27,12 @@ void Com_PID_Calc(PID_Struct *pid)
     pid->last_err = pid->err;
 }
 
-// 串级PID计算
+/**
+ * @brief 执行串级 PID 计算
+ * @param out_pid 外环 PID
+ * @param in_pid 内环 PID
+ * @note 外环输出会直接作为内环目标值
+ */
 void Com_PID_Calc_Chain(PID_Struct *out_pid, PID_Struct *in_pid)
 {
     // 1.先计算外环
