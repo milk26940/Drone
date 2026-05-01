@@ -41,3 +41,8 @@ Listings/
 # System files
 Thumbs.db
 .DS_Store
+
+# Local workspace files
+.claude/settings.local.json
+Netlist_飞行器_2026-04-20.tel
+RemoteControl_vs_Drone_功能模块对应表.xlsx
