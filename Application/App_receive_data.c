@@ -3,6 +3,17 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+/* 遥控数据帧格式：
+ * Byte0~2   : 固定帧头 's' 'g' 'g'
+ * Byte3~4   : 油门 thr，高字节在前
+ * Byte5~6   : 偏航 yaw，高字节在前
+ * Byte7~8   : 俯仰 pit，高字节在前
+ * Byte9~10  : 横滚 rol，高字节在前
+ * Byte11    : 关机命令
+ * Byte12    : 定高切换命令
+ * Byte13~16 : 前 13 字节累加和，高字节在前
+ */
+
 /* 当前解析后的遥控器输入数据。 */
 Remote_Data remote_data = {.thr = 0, .yaw = 500, .pit = 500, .rol = 500, .fix_height = 0, .shutdown = 0};
 /* 遥控链路连接状态。 */
@@ -30,8 +41,10 @@ extern uint8_t back_buff[TX_PLOAD_WIDTH];
  */
 uint8_t App_ReceiveData(void)
 {
+    /* 每次接收前先清空缓冲区，避免上一次残留数据干扰校验。 */
     memset(rx_buff, 0, TX_PLOAD_WIDTH);
 
+    /* 无线模块未收到完整数据包时，直接返回失败，由上层统计掉线。 */
     if (SI24R1_RxPacket(rx_buff) != 0)
     {
         return 1;
@@ -41,23 +54,23 @@ uint8_t App_ReceiveData(void)
     SI24R1_TX_Mode();
     for (uint8_t i = 0; i < 5; i++)
     {
-        if (SI24R1_TxPacket(back_buff) == 0)
+        if (SI24R1_TxPacket(back_buff) == TX_DS)
         {
             break;
         }
     }
     SI24R1_RX_Mode();
 
-    // 1. 帧头校验
+    /* 1. 帧头校验：快速过滤掉无效包或错位数据。 */
     if (rx_buff[0] != FRAME_HEAD_CHECK_1 || rx_buff[1] != FRAME_HEAD_CHECK_2 || rx_buff[2] != FRAME_HEAD_CHECK_3)
     {
         return 1;
     }
 
-    // 2. 校验和校验：前13字节求和，13~16字节为接收到的校验和，高位在前
+    /* 2. 累加和校验：前 13 字节求和，与帧尾 4 字节校验值比较。 */
     uint32_t sum = 0;
     uint32_t sum_receive = 0;
-
+	
     for (uint8_t i = 0; i < 13; i++)
     {
         sum += rx_buff[i];
@@ -69,8 +82,8 @@ uint8_t App_ReceiveData(void)
     {
         return 1;
     }
-
-    // 3. 数据解析
+	
+    /* 3. 数据解析：将原始字节流拆成遥控量与功能开关。 */
     remote_data.thr = (rx_buff[3] << 8) | rx_buff[4];
     remote_data.yaw = (rx_buff[5] << 8) | rx_buff[6];
     remote_data.pit = (rx_buff[7] << 8) | rx_buff[8];
@@ -98,6 +111,7 @@ uint8_t App_receive_data(void)
  */
 void App_process_connect_state(uint8_t res)
 {
+    /* 只要本次成功收到有效包，就立即恢复连接状态并清零失败计数。 */
     if (res == 0)
     {
         remote_state = REMOTE_CONNECTED;
@@ -105,6 +119,7 @@ void App_process_connect_state(uint8_t res)
     }
     else
     {
+        /* 单次失败不立刻判定掉线，避免偶发丢包导致误触发保护。 */
         retry_count++;
         if (retry_count >= MAX_RETRY_TIMES)
         {
@@ -122,9 +137,15 @@ void App_process_connect_state(uint8_t res)
  */
 static uint8_t App_process_unlock(void)
 {
+    /* 解锁手势步骤：
+     * 1. 油门拉到高位并保持至少 1s；
+     * 2. 再将油门拉到低位并保持至少 1s；
+     * 3. 满足后进入 UNLOCK，允许从 IDLE 切到 NORMAL。
+     */
     switch (thr_state)
     {
     case FREE:
+        /* 等待用户先将油门推到高位，作为解锁手势起点。 */
         if (remote_data.thr >= 900)
         {
             thr_state = MAX;
@@ -133,6 +154,7 @@ static uint8_t App_process_unlock(void)
         break;
 
     case MAX:
+        /* 只有高位保持足够时长后离开高位，才进入下一阶段。 */
         if (remote_data.thr < 900)
         {
             if ((xTaskGetTickCount() - max_enter_time) >= pdMS_TO_TICKS(1000))
@@ -147,6 +169,7 @@ static uint8_t App_process_unlock(void)
         break;
 
     case LEAVE_MAX:
+        /* 已经满足高位停留要求，接下来等待油门拉回低位。 */
         if (remote_data.thr <= 100)
         {
             thr_state = MIN;
@@ -155,6 +178,7 @@ static uint8_t App_process_unlock(void)
         break;
 
     case MIN:
+        /* 低位保持不足 1s 时，如果用户又抬高油门，视为手势中断。 */
         if ((xTaskGetTickCount() - min_enter_time) <= pdMS_TO_TICKS(1000))
         {
             if (remote_data.thr > 100)
@@ -169,6 +193,7 @@ static uint8_t App_process_unlock(void)
         break;
 
     case UNLOCK:
+        /* 已解锁后保持状态，等待上层消费这次解锁结果。 */
     default:
         break;
     }
@@ -182,9 +207,16 @@ static uint8_t App_process_unlock(void)
  */
 void App_process_flight_state(void)
 {
+    /* 状态机职责：
+     * IDLE       : 等待完成解锁手势
+     * NORMAL     : 普通姿态控制
+     * FIX_HEIGHT : 在普通姿态控制基础上叠加定高
+     * FAIL       : 遥控失联后的保护降落/停机过渡状态
+     */
     switch (flight_state)
     {
     case IDLE:
+        /* 只有完成解锁动作后，才允许从待机进入正常飞行。 */
         if (App_process_unlock() == 0)
         {
             flight_state = NORMAL;
@@ -193,12 +225,14 @@ void App_process_flight_state(void)
         break;
 
     case NORMAL:
+        /* 收到定高切换命令后，记录当前高度作为定高目标。 */
         if (remote_data.fix_height == 1)
         {
             flight_state = FIX_HEIGHT;
             remote_data.fix_height = 0;
             fix_height = Int_VL53L1X_GetDistance();
         }
+        /* 遥控失联时立即进入失效保护。 */
         if (remote_state == REMOTE_DISCONNECTED)
         {
             flight_state = FAIL;
@@ -206,11 +240,13 @@ void App_process_flight_state(void)
         break;
 
     case FIX_HEIGHT:
+        /* 再次收到定高命令时，退出定高并回到普通模式。 */
         if (remote_data.fix_height == 1)
         {
             flight_state = NORMAL;
             remote_data.fix_height = 0;
         }
+        /* 定高模式同样受失联保护约束。 */
         if (remote_state == REMOTE_DISCONNECTED)
         {
             flight_state = FAIL;
@@ -218,6 +254,7 @@ void App_process_flight_state(void)
         break;
 
     case FAIL:
+        /* 失联恢复后，要求油门回到底位，才允许退回待机态。 */
         if (remote_state == REMOTE_CONNECTED && remote_data.thr <= 100)
         {
             flight_state = IDLE;

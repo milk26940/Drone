@@ -78,7 +78,7 @@ configKERNEL_INTERRUPT_PRIORITY setting.  Here 15 corresponds to the lowest
 NVIC value of 255. */
 #define configLIBRARY_KERNEL_INTERRUPT_PRIORITY	15
 
-/* 添加必须的三个宏 */
+/* 娣诲姞蹇呴』鐨勪笁涓畯 */
 #define xPortPendSVHandler  PendSV_Handler
 #define vPortSVCHandler     SVC_Handler
 #define INCLUDE_xTaskGetSchedulerState   1

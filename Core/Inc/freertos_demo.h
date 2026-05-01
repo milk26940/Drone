@@ -13,7 +13,5 @@ extern volatile Flight_State flight_state;
 void freertos_start(void);
 /* LED 状态指示任务入口。 */
 void LED_Task(void *pvParameters);
-/* 供其他模块手动更新遥控连接状态。 */
-void set_rc_connected(uint8_t connected);
 
 #endif

@@ -1081,14 +1081,14 @@
           <GroupName>interface</GroupName>
           <Files>
             <File>
-              <FileName>Int_IP5305T.c</FileName>
+              <FileName>Int_TP4336.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\interface\Int_IP5305T.c</FilePath>
+              <FilePath>..\interface\Int_TP4336.c</FilePath>
             </File>
             <File>
-              <FileName>Int_IP5305T.h</FileName>
+              <FileName>Int_TP4336.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\interface\Int_IP5305T.h</FilePath>
+              <FilePath>..\interface\Int_TP4336.h</FilePath>
             </File>
             <File>
               <FileName>Int_Motor.c</FileName>

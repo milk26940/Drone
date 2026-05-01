@@ -111,6 +111,10 @@ static uint16_t App_Flight_ReadHeight(void);
 static void App_Flight_SetMotorSpeed(MotorControl_t *motor, int16_t speed);
 static float App_Flight_Qrsqrt(float number);
 
+/**
+ * @brief 初始化飞控相关外设与运行状态
+ * @note 包括 IMU 零偏校准、测距模块初始化以及电机输出使能
+ */
 void App_flight_init(void)
 {
     /* 初始化 IMU 并执行静态零偏校准。 */
@@ -130,6 +134,10 @@ void App_flight_init(void)
     fix_height = 0U;
 }
 
+/**
+ * @brief 读取传感器数据并更新当前欧拉角
+ * @note 对陀螺仪执行一阶低通，对加速度计执行卡尔曼滤波后进行姿态解算
+ */
 void App_flight_get_euler_angle(void)
 {
     /* 读取当前原始传感器数据。 */
@@ -150,6 +158,10 @@ void App_flight_get_euler_angle(void)
     App_Flight_GetEulerAngle(&gyro_accel_data, &euler_angle, APP_FLIGHT_PID_PERIOD);
 }
 
+/**
+ * @brief 执行姿态串级 PID 计算
+ * @note 外环以姿态角为控制对象，内环以角速度为控制对象
+ */
 void App_flight_pid_process(void)
 {
     /* 外环：遥控期望角度；内环：角速度跟踪。 */
@@ -169,6 +181,10 @@ void App_flight_pid_process(void)
     App_Flight_CalcPidChain(&yaw_pid, &gyro_z_pid);
 }
 
+/**
+ * @brief 根据飞行状态和控制输出更新四个电机转速
+ * @note 包含普通模式、定高模式、失效保护以及低油门强制停转逻辑
+ */
 void App_flight_control_motor(void)
 {
     /* 偏航输出单独限幅，避免对混控造成过强扰动。 */
@@ -241,6 +257,10 @@ void App_flight_control_motor(void)
     App_Flight_SetMotorSpeed(&right_bottom_motor, right_bottom_motor.speed);
 }
 
+/**
+ * @brief 执行定高单环 PID 计算
+ * @note 目标高度由全局变量 fix_height 给出，测量值来自测距模块
+ */
 void App_flight_fix_height_pid_process(void)
 {
     /* 当前高度环为单环 PID，目标值由 fix_height 给出。 */
@@ -249,12 +269,24 @@ void App_flight_fix_height_pid_process(void)
     App_Flight_CalcPid(&height_pid);
 }
 
+/**
+ * @brief 对原始整型数据执行一阶低通滤波
+ * @param new_value 当前采样值
+ * @param prev_value 上一次滤波输出值
+ * @return 滤波后的整型结果
+ */
 static int16_t App_Flight_LowPass(int16_t new_value, int16_t prev_value)
 {
     /* 一阶低通：当前输出 = a*新值 + (1-a)*旧值。 */
     return (int16_t)(APP_FLIGHT_LOW_PASS_ALPHA * new_value + (1.0f - APP_FLIGHT_LOW_PASS_ALPHA) * prev_value);
 }
 
+/**
+ * @brief 执行一维卡尔曼滤波
+ * @param kf 卡尔曼滤波器状态结构体
+ * @param input 当前输入值
+ * @return 滤波后的输出值
+ */
 static double App_Flight_KalmanFilter(AppFlightKalman_t *kf, double input)
 {
     /* 一维卡尔曼滤波，仅用于平滑单轴加速度数据。 */
@@ -265,6 +297,11 @@ static double App_Flight_KalmanFilter(AppFlightKalman_t *kf, double input)
     return kf->out;
 }
 
+/**
+ * @brief 计算单个 PID 控制器输出
+ * @param pid PID 参数与运行状态结构体
+ * @note 当前误差定义为 measure - desire，因此参数符号需与该定义保持一致
+ */
 static void App_Flight_CalcPid(AppFlightPid_t *pid)
 {
     float derivative;
@@ -285,6 +322,12 @@ static void App_Flight_CalcPid(AppFlightPid_t *pid)
     pid->last_err = pid->err;
 }
 
+/**
+ * @brief 计算串级 PID 输出
+ * @param out_pid 外环 PID
+ * @param in_pid 内环 PID
+ * @note 外环输出会作为内环的目标输入
+ */
 static void App_Flight_CalcPidChain(AppFlightPid_t *out_pid, AppFlightPid_t *in_pid)
 {
     /* 串级 PID：外环输出作为内环期望角速度。 */
@@ -293,6 +336,13 @@ static void App_Flight_CalcPidChain(AppFlightPid_t *out_pid, AppFlightPid_t *in_
     App_Flight_CalcPid(in_pid);
 }
 
+/**
+ * @brief 将浮点值限制到指定整型区间内
+ * @param value 待限幅的输入值
+ * @param max_value 上限值
+ * @param min_value 下限值
+ * @return 限幅后的整型结果
+ */
 static int16_t App_Flight_LimitFloat(float value, int16_t max_value, int16_t min_value)
 {
     /* 将浮点控制量裁剪到电机或控制通道允许范围。 */
@@ -307,6 +357,13 @@ static int16_t App_Flight_LimitFloat(float value, int16_t max_value, int16_t min
     return (int16_t)value;
 }
 
+/**
+ * @brief 根据 IMU 数据更新欧拉角姿态
+ * @param gyro_accel 当前陀螺仪与加速度计数据
+ * @param euler 输出的欧拉角结果
+ * @param dt 姿态更新周期，单位为秒
+ * @note 当前实现基于四元数互补融合，并对偏航角采用角速度积分
+ */
 static void App_Flight_GetEulerAngle(Gyro_Accel_Struct *gyro_accel, Euler_struct *euler, float dt)
 {
     typedef struct
@@ -407,17 +464,33 @@ static void App_Flight_GetEulerAngle(Gyro_Accel_Struct *gyro_accel, Euler_struct
     euler->roll = atan2f(vec_y_z, vec_z_z) * APP_FLIGHT_RAD_TO_DEG;
 }
 
+/**
+ * @brief 读取当前高度测量值
+ * @return 测距模块返回的距离值
+ */
 static uint16_t App_Flight_ReadHeight(void)
 {
     return Int_VL53L1X_GetDistance();
 }
 
+/**
+ * @brief 设置单个电机转速
+ * @param motor 电机控制结构体
+ * @param speed 目标转速
+ * @note 输出前会再次执行限幅，避免超出允许范围
+ */
 static void App_Flight_SetMotorSpeed(MotorControl_t *motor, int16_t speed)
 {
     /* 输出前再次限幅，避免上层调用传入越界值。 */
     motor_speed_control(motor, App_Flight_LimitFloat(speed, APP_FLIGHT_MOTOR_MAX_SPEED, APP_FLIGHT_MOTOR_MIN_SPEED));
 }
 
+/**
+ * @brief 计算快速平方根倒数
+ * @param number 输入值
+ * @return 输入值平方根的倒数，非法输入时返回 0
+ * @note 主要用于向量与四元数归一化
+ */
 static float App_Flight_Qrsqrt(float number)
 {
     union

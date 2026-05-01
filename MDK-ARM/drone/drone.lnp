@@ -40,7 +40,7 @@
 "drone\com_filter.o"
 "drone\com_imu.o"
 "drone\com_pid.o"
-"drone\int_ip5305t.o"
+"drone\int_tp4336.o"
 "drone\int_motor.o"
 "drone\int_led.o"
 "drone\int_si24r1.o"
